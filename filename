@@ -1,38 +1,74 @@
-// components/HabitCard.tsx
+// components/CreateHabitModal.tsx
 'use client';
 
 import { useState } from 'react';
 import { Habit } from '../types/habit';
 
-interface HabitCardProps {
-  habit: Habit;
-  onComplete: (habitId: string) => void;
+interface CreateHabitModalProps {
+  onCreateHabit: (habit: Omit<Habit, 'id' | 'currentStreak' | 'longestStreak' | 'completedDates'>) => void;
+  onClose: () => void;
 }
 
-export function HabitCard({ habit, onComplete }: HabitCardProps) {
-  const [isCompleted, setIsCompleted] = useState(false);
+export function CreateHabitModal({ onCreateHabit, onClose }: CreateHabitModalProps) {
+  const [name, setName] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'custom'>('daily');
+  const [reminderEnabled, setReminderEnabled] = useState(false);
 
-  const handleComplete = () => {
-    setIsCompleted(true);
-    onComplete(habit.id);
+  const handleSubmit = () => {
+    if (name.trim()) {
+      onCreateHabit({
+        name,
+        frequency,
+        reminderEnabled,
+        targetCompletionTime: undefined
+      });
+      onClose();
+    }
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
-      <h2 className="text-xl font-bold">{habit.name}</h2>
-      <div className="flex justify-between items-center mt-2">
-        <span>Current Streak: {habit.currentStreak} days</span>
-        <button 
-          onClick={handleComplete}
-          disabled={isCompleted}
-          className={`px-4 py-2 rounded ${
-            isCompleted 
-              ? 'bg-gray-300 cursor-not-allowed' 
-              : 'bg-green-500 text-white hover:bg-green-600'
-          }`}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg w-96">
+        <h2 className="text-2xl mb-4">Create New Habit</h2>
+        <input 
+          type="text"
+          placeholder="Habit Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+        />
+        <select 
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly' | 'custom')}
+          className="w-full p-2 border rounded mb-4"
         >
-          {isCompleted ? 'Completed' : 'Complete'}
-        </button>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="custom">Custom</option>
+        </select>
+        <label className="flex items-center mb-4">
+          <input 
+            type="checkbox"
+            checked={reminderEnabled}
+            onChange={() => setReminderEnabled(!reminderEnabled)}
+            className="mr-2"
+          />
+          Enable Reminders
+        </label>
+        <div className="flex justify-between">
+          <button 
+            onClick={onClose}
+            className="bg-gray-300 px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={handleSubmit}
+            className="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Create
+          </button>
+        </div>
       </div>
     </div>
   );
