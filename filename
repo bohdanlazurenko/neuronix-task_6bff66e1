@@ -1,24 +1,39 @@
-// lib/utils.ts
-export function calculateStreak(completedDates: Date[]): number {
-  const sortedDates = completedDates.sort((a, b) => b.getTime() - a.getTime());
-  let streak = 0;
-  const today = new Date();
+// components/HabitCard.tsx
+'use client';
 
-  for (const date of sortedDates) {
-    const dayDifference = Math.floor(
-      (today.getTime() - date.getTime()) / (1000 * 3600 * 24)
-    );
-    
-    if (dayDifference === streak) {
-      streak++;
-    } else {
-      break;
-    }
-  }
+import { useState } from 'react';
+import { Habit } from '../types/habit';
 
-  return streak;
+interface HabitCardProps {
+  habit: Habit;
+  onComplete: (habitId: string) => void;
 }
 
-export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+export function HabitCard({ habit, onComplete }: HabitCardProps) {
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  const handleComplete = () => {
+    setIsCompleted(true);
+    onComplete(habit.id);
+  };
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
+      <h2 className="text-xl font-bold">{habit.name}</h2>
+      <div className="flex justify-between items-center mt-2">
+        <span>Current Streak: {habit.currentStreak} days</span>
+        <button 
+          onClick={handleComplete}
+          disabled={isCompleted}
+          className={`px-4 py-2 rounded ${
+            isCompleted 
+              ? 'bg-gray-300 cursor-not-allowed' 
+              : 'bg-green-500 text-white hover:bg-green-600'
+          }`}
+        >
+          {isCompleted ? 'Completed' : 'Complete'}
+        </button>
+      </div>
+    </div>
+  );
 }
