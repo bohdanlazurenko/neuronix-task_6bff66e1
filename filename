@@ -1,27 +1,72 @@
-// app/layout.tsx
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+// app/page.tsx
+'use client';
 
-const inter = Inter({ subsets: ['latin'] });
+import { useState } from 'react';
+import { HabitCard } from '../components/HabitCard';
+import { CreateHabitModal } from '../components/CreateHabitModal';
+import { Habit } from '../types/habit';
+import { v4 as uuidv4 } from 'uuid';
+import { calculateStreak } from '../lib/utils';
 
-export const metadata: Metadata = {
-  title: 'DailyStreak: Habit Tracker',
-  description: 'Build and maintain positive habits',
-};
+export default function HomePage() {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+  const handleCreateHabit = (newHabit: Omit<Habit, 'id' | 'currentStreak' | 'longestStreak' | 'completedDates'>) => {
+    const habit: Habit = {
+      ...newHabit,
+      id: uuidv4(),
+      currentStreak: 0,
+      longestStreak: 0,
+      completedDates: []
+    };
+    setHabits([...habits, habit]);
+  };
+
+  const handleHabitComplete = (habitId: string) => {
+    const updatedHabits = habits.map(habit => {
+      if (habit.id === habitId) {
+        const newCompletedDates = [...habit.completedDates, new Date()];
+        const newCurrentStreak = calculateStreak(newCompletedDates);
+        
+        return {
+          ...habit,
+          completedDates: newCompletedDates,
+          currentStreak: newCurrentStreak,
+          longestStreak: Math.max(newCurrentStreak, habit.longestStreak)
+        };
+      }
+      return habit;
+    });
+
+    setHabits(updatedHabits);
+  };
+
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-100`}>
-        <div className="container mx-auto max-w-xl px-4">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className="py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">DailyStreak</h1>
+      
+      <button 
+        onClick={() => setShowCreateModal(true)}
+        className="w-full bg-blue-500 text-white py-2 rounded mb-6 hover:bg-blue-600"
+      >
+        Create New Habit
+      </button>
+
+      {habits.map(habit => (
+        <HabitCard 
+          key={habit.id} 
+          habit={habit} 
+          onComplete={handleHabitComplete} 
+        />
+      ))}
+
+      {showCreateModal && (
+        <CreateHabitModal 
+          onCreateHabit={handleCreateHabit}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
+    </div>
   );
 }
