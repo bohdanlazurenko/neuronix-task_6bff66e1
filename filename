@@ -1,17 +1,24 @@
-// types/habit.ts
-export interface Habit {
-  id: string;
-  name: string;
-  frequency: 'daily' | 'weekly' | 'custom';
-  targetCompletionTime?: string;
-  reminderEnabled: boolean;
-  currentStreak: number;
-  longestStreak: number;
-  completedDates: Date[];
+// lib/utils.ts
+export function calculateStreak(completedDates: Date[]): number {
+  const sortedDates = completedDates.sort((a, b) => b.getTime() - a.getTime());
+  let streak = 0;
+  const today = new Date();
+
+  for (const date of sortedDates) {
+    const dayDifference = Math.floor(
+      (today.getTime() - date.getTime()) / (1000 * 3600 * 24)
+    );
+    
+    if (dayDifference === streak) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  habits: Habit[];
+export function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0];
 }
